@@ -1,114 +1,59 @@
 package com.example;
 
+import org.hibernate.Session;
+import org.hibernate.Transaction;
+import org.hibernate.query.Query;
+
+import javax.swing.*;
 import java.sql.*;
-import java.util.ArrayList;
 import java.util.List;
 
-public class ProductDAO{
+public class ProductDAO {
     public Product addProduct(Product product) throws SQLException {
-        String sql = "INSERT INTO products (name, price, stock,category,description) VALUES (?, ?, ?,?,?)";
 
-        try (Connection conn = DatabaseConnection.getConnection();
-             PreparedStatement pstmt = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
+        try (Session session = HibernateUtil.getSessionFactory().openSession()) {
+            Transaction tx = session.beginTransaction();
+            session.persist(product);
+            tx.commit();
+        }
+        return product;
+    }
 
-            pstmt.setString(1, product.getName());
-            pstmt.setDouble(2, product.getPrice());
-            pstmt.setInt(3, product.getStock());
-            pstmt.setString(4, product.getCategory());
-            pstmt.setString(5, product.getDescription());
+    public Product getProductById(int id) throws SQLException {
 
-            int rowsAffected = pstmt.executeUpdate();
-
-            if (rowsAffected > 0) {
-                // Obtener el ID generado
-                try (ResultSet generatedKeys = pstmt.getGeneratedKeys()) {
-                    if (generatedKeys.next()) {
-                        product.setId(generatedKeys.getInt(1));
-                    }
-                }
-            }
-
+        try (Session session = HibernateUtil.getSessionFactory().openSession()) {
+            Product product = session.get(Product.class, id);
             return product;
         }
     }
 
-    public Product getProductById(int id) throws SQLException {
-        String sql = "SELECT * FROM products WHERE id = ?";
-
-        try (Connection conn = DatabaseConnection.getConnection();
-             PreparedStatement pstmt = conn.prepareStatement(sql)) {
-
-            pstmt.setInt(1, id);
-
-            try (ResultSet rs = pstmt.executeQuery()) {
-                if (rs.next()) {
-                    return new Product(
-                            rs.getInt("id"),
-                            rs.getString("name"),
-                            rs.getDouble("price"),
-                            rs.getInt("stock"),
-                            rs.getString("category"),
-                            rs.getString("description")
-                    );
-                }
-            }
-        }
-
-        return null;
-    }
-
     public List<Product> getAllProducts() throws SQLException {
-        List<Product> products = new ArrayList<>();
-        String sql = "SELECT * FROM products";
+        List<Product> products;
 
-        try (Connection conn = DatabaseConnection.getConnection();
-             PreparedStatement pstmt = conn.prepareStatement(sql);
-             ResultSet rs = pstmt.executeQuery()) {
-
-            while (rs.next()) {
-                products.add(new Product(
-                        rs.getInt("id"),
-                        rs.getString("name"),
-                        rs.getDouble("price"),
-                        rs.getInt("stock"),
-                        rs.getString("category"),
-                        rs.getString("description")
-                ));
-            }
+        try (Session session = HibernateUtil.getSessionFactory().openSession()) {
+            Query<Product> query = session.createQuery("FROM Product", Product.class);
+            products = query.list();
         }
 
         return products;
     }
 
-    public boolean updateProduct(Product  product) throws SQLException {
-        String sql = "UPDATE products SET name = ?, price = ?, stock = ?, category = ?, description = ? WHERE id = ?";
+    public void updateProduct(Product product) throws SQLException {
+        try (Session session = HibernateUtil.getSessionFactory().openSession()) {
 
-        try (Connection conn = DatabaseConnection.getConnection();
-             PreparedStatement pstmt = conn.prepareStatement(sql)) {
-
-            pstmt.setString(1, product.getName());
-            pstmt.setDouble(2, product.getPrice());
-            pstmt.setInt(3, product.getStock());
-            pstmt.setString(4, product.getCategory());
-            pstmt.setString(5, product.getDescription());
-            pstmt.setInt(6, product.getId());
-
-            int rowsAffected = pstmt.executeUpdate();
-
-            return rowsAffected > 0;
+            Transaction tx = session.beginTransaction();
+            session.merge(product);
+            tx.commit();
         }
     }
 
-    public boolean deleteProduct(int id) throws SQLException {
-        String sql = "DELETE FROM products WHERE id = ?";
+    public void deleteProduct(int id) throws SQLException {
 
-        try (Connection conn = DatabaseConnection.getConnection();
-             PreparedStatement pstmt = conn.prepareStatement(sql)) {
+        try (Session session = HibernateUtil.getSessionFactory().openSession()) {
 
-            pstmt.setInt(1, id);
-
-            int rowsAffected = pstmt.executeUpdate();
-            return rowsAffected > 0;
+            Transaction tx = session.beginTransaction();
+            session.remove(getProductById(id));
+            tx.commit();
         }
     }
 }

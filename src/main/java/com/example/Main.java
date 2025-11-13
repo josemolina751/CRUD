@@ -4,36 +4,38 @@ import java.sql.SQLException;
 import java.util.List;
 
 public class Main {
-    public static void main(String[] args) throws SQLException {
+    public static void main(String[] args) {
 
-        ProductDAO productDAO = new ProductDAO();
+        try {
 
 
-        Product product = new Product("Maquina", 12, 3,"Electronica","Cuidado Masc");
+            ProductDAO productDAO = new ProductDAO();
 
-       product =  productDAO.addProduct(product);
 
-       product = productDAO.getProductById(product.getId());
+            Product product = new Product("Maquina", 12, 3, "Electronica", "Cuidado Masc");
 
-       System.out.println(product);
+            product = productDAO.addProduct(product);
 
-       List<Product> productList =  productDAO.getAllProducts();
+            product = productDAO.getProductById(product.getId());
 
-        for (Product p : productList){
-            System.out.println(p);
+            System.out.println(product);
+
+            List<Product> productList = productDAO.getAllProducts();
+
+            for (Product p : productList) {
+                System.out.println(p);
+            }
+
+            product.setName("Vestido");
+
+            productDAO.updateProduct(product);
+            System.out.println(productDAO.getProductById(product.getId()));
+
+
+            productDAO.deleteProduct(product.getId());
+            System.out.println(productDAO.getProductById(product.getId()));
+        } catch (SQLException e) {
+            System.out.println("Error con la base de datos");
         }
-
-        product.setName("Vestido");
-
-        productDAO.updateProduct(product);
-        System.out.println( productDAO.getProductById(product.getId()));
-
-
-        productDAO.deleteProduct(product.getId());
-        System.out.println( productDAO.getProductById(product.getId()));
-
     }
-
-
-
 }

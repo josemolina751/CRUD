@@ -1,7 +1,14 @@
 package com.example;
 
-public class Product {
+import jakarta.persistence.*;
+import jakarta.persistence.Entity;
 
+
+@Entity
+@Table(name = "products")
+public class Product {
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private int id;
     private String name;
     private double price;
@@ -17,12 +24,12 @@ public class Product {
         this.name = name;
         this.price = price;
         this.stock = stock;
-        this.category=category;
+        this.category = category;
         this.description = description;
 
     }
 
-    public Product(){
+    public Product() {
 
     }
 
@@ -30,7 +37,7 @@ public class Product {
         this.name = name;
         this.price = price;
         this.stock = stock;
-        this.category=category;
+        this.category = category;
         this.description = description;
     }
 
